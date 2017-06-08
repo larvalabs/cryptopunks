@@ -14,7 +14,7 @@ This repo contains the Ethereum contract used to manage the Punks, a verifiable 
 
 ### How to Use the CryptoPunks Contract
 
-The main CryptoPunks contract can be found at address **0x00000**. Watch this contract in your Ethereum wallet using that address and [this ABI file](). Now you can execute the following functions on the contract:
+The main CryptoPunks contract can be found at address **0x00000**. Watch this contract in your Ethereum wallet using that address and [this ABI file](/compiled/CryptoPunks.abi). Now you can execute the following functions on the contract:
 
 * ```getPunk(uint index)``` to claim ownership of a punk.
 * ```transferPunk(address to, uint index)``` transfer ownership of a punk to someone without requiring any payment.
