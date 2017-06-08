@@ -2,7 +2,7 @@ pragma solidity ^0.4.8;
 contract CryptoPunks {
 
     // You can use this hash to verify the image file containing all the punks
-    string public imageHash = "ac39af4793119ee46bbff351d8cb6b5f23da60222126add4268e261199a2921b";
+    string public imageHash = "HASH";
 
     address owner;
 
@@ -53,7 +53,7 @@ contract CryptoPunks {
         punksRemainingToAssign = totalSupply;
         numberOfPunksToReserve = 1000;
         name = "CRYPTOPUNKS";                                   // Set the name for display purposes
-        symbol = "CP";                               // Set the symbol for display purposes
+        symbol = "Ͼ";                               // Set the symbol for display purposes
         decimals = 0;                                       // Amount of decimals for display purposes
     }
 
@@ -62,21 +62,23 @@ contract CryptoPunks {
         if (numberOfPunksReserved >= numberOfPunksToReserve) throw;
         uint numberPunksReservedThisRun = 0;
         while (numberOfPunksReserved < numberOfPunksToReserve && numberPunksReservedThisRun < maxForThisRun) {
-            getPunk();
+            punkIndexToAddress[nextPunkIndexToAssign] = msg.sender;
+            Assign(msg.sender, nextPunkIndexToAssign);
             numberPunksReservedThisRun++;
-            numberOfPunksReserved++;
+            nextPunkIndexToAssign++;
         }
+        punksRemainingToAssign -= numberPunksReservedThisRun;
+        numberOfPunksReserved += numberPunksReservedThisRun;
+        balanceOf[msg.sender] += numberPunksReservedThisRun;
     }
 
-    function getPunk() returns (uint punkIndexAssigned) {
+    function getPunk(uint punkIndex) {
         if (punksRemainingToAssign == 0) throw;
-        punkIndexToAddress[nextPunkIndexToAssign] = msg.sender;
+        if (punkIndexToAddress[punkIndex] != 0x0) throw;
+        punkIndexToAddress[punkIndex] = msg.sender;
         balanceOf[msg.sender]++;
         punksRemainingToAssign--;
-        uint indexAssigned = nextPunkIndexToAssign;
-        nextPunkIndexToAssign++;
-        Assign(msg.sender, indexAssigned);
-        return indexAssigned;
+        Assign(msg.sender, punkIndex);
     }
 
     // Transfer ownership of a punk to another user without requiring payment

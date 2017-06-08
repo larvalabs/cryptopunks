@@ -60,7 +60,7 @@ contract('CryptoPunks', function (accounts) {
                         assert(false, error.toString());
                     }
                 }).then(function() {
-                    return contract.getPunk();
+                    return contract.getPunk(1000);
                 }).then(function() {
                     return contract.balanceOf.call(accounts[0]);
                 }).then(function(result) {
@@ -70,7 +70,23 @@ contract('CryptoPunks', function (accounts) {
                     assert.equal(result.valueOf(), 8999, "Should have 8999 punks remaining to assign.");
                     return contract.nextPunkIndexToAssign();
                 }).then(function(result) {
-                    assert.equal(result.valueOf(), 1001, "Should be ready to assign punk index 1001 next.");
+                    assert.equal(result.valueOf(), 1000, "Punk assign index should stay at 1000.");
+
+                    console.log("Trying to get punk 500 when it's already assigned.");
+
+                    return contract.getPunk(500, {from: accounts[1]});
+                }).then(function () {
+                    // console.log("Bought punk.");
+                    assert(false, "Was supposed to throw but didn't.");
+                }).catch(function (error) {
+                    if (error.toString().indexOf("invalid opcode") != -1) {
+                        // Expecting a throw here
+                        // console.log("We were expecting a Solidity throw (aka an invalid JUMP), we got one. Test succeeded.");
+                    } else {
+                        // if the error is something else (e.g., the assert from previous promise), then we fail the test
+                        assert(false, error.toString());
+                    }
+                    // Get account 0 to buy a punk with enough ether
 
                     // Send ether to other accounts so they can run some tests
                     web3.eth.sendTransaction({from:accounts[0], to:accounts[2], value: 10000000})
@@ -91,9 +107,10 @@ contract('CryptoPunks', function (accounts) {
 
                 }).then(function() {
                     // Give all remaining punks to account 1
+                    console.log("Getting a bunch of punks for account 1.");
                     var promises = [];
                     for (var i=0; i < 100; i++) {
-                        promises.push(contract.getPunk({from: accounts[1]}));
+                        promises.push(contract.getPunk(1001+i, {from: accounts[1]}));
                     }
 
                     Promise.all(promises).then(function() {
