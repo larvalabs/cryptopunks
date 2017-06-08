@@ -9,7 +9,7 @@ contract('CryptoPunks', function (accounts) {
             assert.equal(balance.valueOf(), 10000, "10000 punks not available.");
         });
     }),
-        it("should be able to reserve punks for owner", function () {
+        it("should be able to reserve, buy and sell punks", function () {
             var contract;
             var previousBalance;
             var punksRemainingToAssign;
