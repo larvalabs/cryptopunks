@@ -10,7 +10,7 @@ This repo contains the Ethereum contract used to manage the Punks, a verifiable 
 
 * **How much do the punks cost?** They're free! You just need pay the transaction fee that assigns the punk to your address.
 * **How much is a punk worth?** Like many things, they're worth whatever someone will pay. Somewhere in the range of $0 to $1.8M, but currently closer to $0 end of that range right now.
-* **How were the punk images created?** With a generator that was programmed to generate punks with a range of features and rarity. For example, there are only 178 Zombie Punks, 48 Apes, 18 Aliens and exactly 1 Alien Punk smoking a pipe.
+* **How were the punk images created?** With a generator that was programmed to generate punks with a range of features and rarity. For example, there are only 88 Zombie Punks, 24 Apes, 9 Aliens and exactly 1 Alien Punk smoking a pipe.
 
 ### How to Use the CryptoPunks Contract
 
