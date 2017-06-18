@@ -57,6 +57,7 @@ contract CryptoPunks {
     function setInitialOwner(address to, uint punkIndex) {
         if (msg.sender != owner) throw;
         if (allPunksAssigned) throw;
+        if (punkIndex >= 10000) throw;
         punkIndexToAddress[punkIndex] = to;
         balanceOf[to]++;
         punksRemainingToAssign--;
@@ -71,6 +72,7 @@ contract CryptoPunks {
     function getPunk(uint punkIndex) {
         if (punksRemainingToAssign == 0) throw;
         if (punkIndexToAddress[punkIndex] != 0x0) throw;
+        if (punkIndex >= 10000) throw;
         punkIndexToAddress[punkIndex] = msg.sender;
         balanceOf[msg.sender]++;
         punksRemainingToAssign--;
@@ -80,6 +82,7 @@ contract CryptoPunks {
     // Transfer ownership of a punk to another user without requiring payment
     function transferPunk(address to, uint punkIndex) {
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
+        if (punkIndex >= 10000) throw;
         punkIndexToAddress[punkIndex] = to;
         balanceOf[msg.sender]--;
         balanceOf[to]++;
@@ -89,24 +92,28 @@ contract CryptoPunks {
 
     function punkNoLongerForSale(uint punkIndex) {
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
+        if (punkIndex >= 10000) throw;
         punksOfferedForSale[punkIndex] = Offer(false, punkIndex, msg.sender, 0, 0x0);
         PunkNoLongerForSale(punkIndex);
     }
 
     function offerPunkForSale(uint punkIndex, uint minSalePriceInWei) {
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
+        if (punkIndex >= 10000) throw;
         punksOfferedForSale[punkIndex] = Offer(true, punkIndex, msg.sender, minSalePriceInWei, 0x0);
         PunkOffered(punkIndex, minSalePriceInWei, 0x0);
     }
 
     function offerPunkForSaleToAddress(uint punkIndex, uint minSalePriceInWei, address toAddress) {
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
+        if (punkIndex >= 10000) throw;
         punksOfferedForSale[punkIndex] = Offer(true, punkIndex, msg.sender, minSalePriceInWei, toAddress);
         PunkOffered(punkIndex, minSalePriceInWei, toAddress);
     }
 
     function buyPunk(uint punkIndex) payable {
         Offer offer = punksOfferedForSale[punkIndex];
+        if (punkIndex >= 10000) throw;
         if (!offer.isForSale) throw;                // punk not actually for sale
         if (offer.onlySellTo != 0x0 && offer.onlySellTo != msg.sender) throw;  // punk not supposed to be sold to this user
         if (msg.value < offer.minValue) throw;      // Didn't send enough ETH
