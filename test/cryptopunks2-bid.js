@@ -59,8 +59,31 @@ contract('CryptoPunks2-bid', function (accounts) {
   }),
   it("do a real bid", async function () {
     var contract = await CryptoPunks2.deployed();
-    contract.enterBidForPunk(1, {from: accounts[0], value: 1000});
-    // todo - check to see if A0's balance went down
+    var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
+    await contract.enterBidForPunk(1, {from: accounts[0], value: 1000});
+    var account0Balance = await web3.eth.getBalance(accounts[0]);
+    compareBalance(account0BalancePrev, account0Balance, -1000);
+  }),
+  it("wrong address tries to cancel bid", async function () {
+    var contract = await CryptoPunks2.deployed();
+    await expectThrow(contract.withdrawBidForPunk(1, {from: accounts[2]}));
+  }),
+  it("cancel bid", async function () {
+    var contract = await CryptoPunks2.deployed();
+    var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
+    await contract.withdrawBidForPunk(1, {from: accounts[0]});
+    var account0Balance = await web3.eth.getBalance(accounts[0]);
+    compareBalance(account0BalancePrev, account0Balance, 1000);
+    var bid = await contract.punkBids.call(1);
+    // Make sure bid is cleared
+    assert.equal(false, bid[0]);
+  }),
+  it("do another real bid", async function () {
+    var contract = await CryptoPunks2.deployed();
+    var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
+    await contract.enterBidForPunk(1, {from: accounts[0], value: 2000});
+    var account0Balance = await web3.eth.getBalance(accounts[0]);
+    compareBalance(account0BalancePrev, account0Balance, -2000);
   }),
   it("bid underneath an existing bid", async function () {
     var contract = await CryptoPunks2.deployed();
@@ -75,7 +98,7 @@ contract('CryptoPunks2-bid', function (accounts) {
     compareBalance(account2BalancePrev, account2Balance, -3000);
     // Make sure A1 was refunded.
     var amount = await contract.pendingWithdrawals.call(accounts[0]);
-    assert.equal(1000, amount);
+    assert.equal(2000, amount);
     // Make sure withdraw works
     await contract.withdraw({from: accounts[0]});
     var newAmount = await contract.pendingWithdrawals.call(accounts[0]);
@@ -83,22 +106,24 @@ contract('CryptoPunks2-bid', function (accounts) {
   }),
   it("wrong owner tries to accept bid", async function () {
     var contract = await CryptoPunks2.deployed();
-    await expectThrow(contract.acceptBidForPunk(1, {from: accounts[0]}));
+    await expectThrow(contract.acceptBidForPunk(1, 3000, {from: accounts[0]}));
   }),
   it("try to accept bid for a punk that has no bid", async function () {
     var contract = await CryptoPunks2.deployed();
-    await expectThrow(contract.acceptBidForPunk(0, {from: accounts[0]}));
+    await expectThrow(contract.acceptBidForPunk(0, 3000, {from: accounts[0]}));
+  }),
+  it("try to accept bid for a punk with too high an accept value", async function () {
+    var contract = await CryptoPunks2.deployed();
+    await expectThrow(contract.acceptBidForPunk(1, 4000, {from: accounts[1]}));
   }),
   it("accept bid from A2", async function () {
     var contract = await CryptoPunks2.deployed();
-    var allAssigned = await contract.allPunksAssigned.call();
-    console.log("AllAssigned: " + allAssigned);
 
     var bid = await contract.punkBids.call(1);
     var currentOwner = await contract.punkIndexToAddress.call(1);
     console.log("Current owner: "+currentOwner);
     console.log("Bid: "+bid);
-    await contract.acceptBidForPunk(1, {from: accounts[1]});
+    await contract.acceptBidForPunk(1, 3000, {from: accounts[1]});
     console.log("Bid accepted");
     // Was A1 paid?
     var amount = await contract.pendingWithdrawals.call(accounts[1]);
@@ -118,7 +143,7 @@ contract('CryptoPunks2-bid', function (accounts) {
     var contract = await CryptoPunks2.deployed();
     await contract.offerPunkForSale(0, 9000, {from: accounts[0]});
     await contract.enterBidForPunk(0, {from: accounts[2], value: 5000});
-    await contract.acceptBidForPunk(0, {from: accounts[0]});
+    await contract.acceptBidForPunk(0, 5000, {from: accounts[0]});
     // Make sure transaction went through at 5000 price level
     var balance0 = await contract.balanceOf.call(accounts[0]);
     var balance2 = await contract.balanceOf.call(accounts[2]);

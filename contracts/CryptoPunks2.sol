@@ -174,13 +174,14 @@ contract CryptoPunks2 {
         PunkBidEntered(punkIndex, msg.value, msg.sender);
     }
 
-    function acceptBidForPunk(uint punkIndex) {
+    function acceptBidForPunk(uint punkIndex, uint minPrice) {
         if (punkIndex >= 10000) throw;
         if (!allPunksAssigned) throw;                
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
         address seller = msg.sender;
         Bid bid = punkBids[punkIndex];
         if (bid.value == 0) throw;
+        if (bid.value < minPrice) throw;
 
         punkIndexToAddress[punkIndex] = bid.bidder;
         balanceOf[seller]--;
