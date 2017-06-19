@@ -1,7 +1,7 @@
 require('babel-polyfill');
 var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
 
-contract('CryptoPunks2', function (accounts) {
+contract('CryptoPunks2-fullRun', function (accounts) {
     it("should have 10000 punks available to assign", function () {
         return CryptoPunks2.deployed().then(function (instance) {
             // console.log("Deployed");
