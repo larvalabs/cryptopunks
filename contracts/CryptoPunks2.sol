@@ -187,7 +187,7 @@ contract CryptoPunks2 {
         balanceOf[bid.bidder]++;
         Transfer(seller, bid.bidder, 1);
 
-        punkNoLongerForSale(punkIndex);
+        punksOfferedForSale[punkIndex] = Offer(false, punkIndex, bid.bidder, 0, 0x0);
         uint amount = bid.value;
         punkBids[punkIndex] = Bid(false, punkIndex, 0x0, 0);
         pendingWithdrawals[seller] += amount;
