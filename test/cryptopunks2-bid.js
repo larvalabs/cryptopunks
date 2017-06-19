@@ -24,6 +24,16 @@ var expectThrow = async function(promise) {
   assert.fail('Expected throw not received');
 };
 
+var compareBalance = function(previousBalance, currentBalance, amount) {
+  var strPrevBalance = String(previousBalance);
+  var digitsToCompare = 8;
+  var subPrevBalance = strPrevBalance.substr(strPrevBalance.length - digitsToCompare, strPrevBalance.length);
+  var strBalance = String(currentBalance);
+  var subCurrBalance = strBalance.substr(strBalance.length - digitsToCompare, strBalance.length);
+  console.log("Comparing only least significant digits: "+subPrevBalance+" vs. "+subCurrBalance);
+  assert.equal(Number(subCurrBalance), Number(subPrevBalance) + amount, "Account 1 balance incorrect after withdrawal.");
+};
+
 contract('CryptoPunks2-bid', function (accounts) {
   it("attempt to bid on an unclaimed to punk", async function () {
     var contract = await CryptoPunks2.deployed();
@@ -58,8 +68,11 @@ contract('CryptoPunks2-bid', function (accounts) {
   }),
   it("outbid", async function () {
     var contract = await CryptoPunks2.deployed();
-    contract.enterBidForPunk(1, {from: accounts[2], value: 3000});
+    var account2BalancePrev = await web3.eth.getBalance(accounts[2]);
+    await contract.enterBidForPunk(1, {from: accounts[2], value: 3000});
     // todo - check to see if A2's balance went down
+    var account2Balance = await web3.eth.getBalance(accounts[2]);
+    compareBalance(account2BalancePrev, account2Balance, -3000);
     // Make sure A1 was refunded.
     var amount = await contract.pendingWithdrawals.call(accounts[0]);
     assert.equal(1000, amount);
@@ -78,20 +91,28 @@ contract('CryptoPunks2-bid', function (accounts) {
   }),
   it("accept bid from A2", async function () {
     var contract = await CryptoPunks2.deployed();
-    contract.acceptBidForPunk(1, {from: accounts[1]});
+    var allAssigned = await contract.allPunksAssigned.call();
+    console.log("AllAssigned: " + allAssigned);
+
+    var bid = await contract.punkBids.call(1);
+    var currentOwner = await contract.punkIndexToAddress.call(1);
+    console.log("Current owner: "+currentOwner);
+    console.log("Bid: "+bid);
+    await contract.acceptBidForPunk(1, {from: accounts[1]});
+    console.log("Bid accepted");
     // Was A1 paid?
     var amount = await contract.pendingWithdrawals.call(accounts[1]);
     assert.equal(3000, amount);
     // Does A2 own the punk
     var owner = await contract.punkIndexToAddress.call(1);
-    assert.equal(owner, account[2]);
+    assert.equal(owner, accounts[2]);
     var balance1 = await contract.balanceOf.call(accounts[1]);
     var balance2 = await contract.balanceOf.call(accounts[2]);
     assert.equal(balance1, 0);
     assert.equal(balance2, 1);
     // Ensure bid object has been zeroed out
     var bid = await contract.punkBids.call(1);
-    assert.equals(false, bid.hasBid);
+    assert.equal(false, bid[0]);
   }),
   it("offer up a punk for sale, then get a lower bid, accept that bid", async function () {
     var contract = await CryptoPunks2.deployed();
@@ -104,11 +125,11 @@ contract('CryptoPunks2-bid', function (accounts) {
     assert.equal(balance0, 0);
     assert.equal(balance2, 2);
     var owner = await contract.punkIndexToAddress.call(0);
-    assert.equal(owner, account[2]);
+    assert.equal(owner, accounts[2]);
     var amount = await contract.pendingWithdrawals.call(accounts[0]);
     assert.equal(5000, amount);
     // Ensure offer object has been zeroed out
     var offer = await contract.punksOfferedForSale.call(0);
-    assert.equals(false, offer.isForSale);
+    assert.equal(false, offer[0]);
   })
 });
