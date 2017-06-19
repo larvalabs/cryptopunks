@@ -1,3 +1,4 @@
+require('babel-polyfill');
 var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
 
 contract('CryptoPunks2', function (accounts) {
@@ -193,48 +194,13 @@ contract('CryptoPunks2', function (accounts) {
               // return contract.buyPunk(1001, {from: accounts[2], value: 10000});
           })
       }),
-      it("only owner can call setInitialOwner", function () {
-          var contract;
-          return CryptoPunks2.deployed().then(function (instance) {
-              contract = instance;
-              return instance.setInitialOwner(accounts[1], 10000);
-            }).then(function () {
-                // console.log("Bought punk.");
-                assert(false, "Was supposed to throw but didn't.");
-            }).catch(function (error) {
-                if (error.toString().indexOf("invalid opcode") != -1) {
-                    // Expecting a throw here
-                    // console.log("We were expecting a Solidity throw (aka an invalid JUMP), we got one. Test succeeded.");
-                } else {
-                    // if the error is something else (e.g., the assert from previous promise), then we fail the test
-                    assert(false, error.toString());
-                }
-                // Get account 0 to buy a punk with enough ether
-                // console.log("Buying punk 1001 with account 2 which should be allowed.");
-                // return contract.buyPunk(1001, {from: accounts[2], value: 10000});
-            })
-        }),
-      it("should not be able to call setInitialOwner after contract set to all initial assigned", function () {
-          var contract;
-          return CryptoPunks2.deployed().then(function (instance) {
-                contract = instance;
-                return contract.allInitialOwnersAssigned();
-            }).then(function () {
-                return contract.setInitialOwner(accounts[0], 0);
-            }).then(function () {
-                // console.log("Bought punk.");
-                assert(false, "Was supposed to throw but didn't.");
-            }).catch(function (error) {
-                if (error.toString().indexOf("invalid opcode") != -1) {
-                    // Expecting a throw here
-                    // console.log("We were expecting a Solidity throw (aka an invalid JUMP), we got one. Test succeeded.");
-                } else {
-                    // if the error is something else (e.g., the assert from previous promise), then we fail the test
-                    assert(false, error.toString());
-                }
-                // Get account 0 to buy a punk with enough ether
-                // console.log("Buying punk 1001 with account 2 which should be allowed.");
-                // return contract.buyPunk(1001, {from: accounts[2], value: 10000});
-            })
+      it("only owner can call setInitialOwner", async function () {
+          var contract = await CryptoPunks2.deployed();
+          try {
+            await instance.setInitialOwner(accounts[1], 10000);
+            assert(false, "Should have thrown exception.");
+          } catch (err) {
+            // Should catch an exception
+          }
         });
 });
