@@ -31,8 +31,18 @@ contract CryptoPunks2 {
         address onlySellTo;     // specify to sell only to a specific person
     }
 
+    struct Bid {
+        bool hasBid;
+        uint punkIndex;
+        address bidder;
+        uint value;
+    }
+
     // A record of punks that are offered for sale at a specific minimum value, and perhaps to a specific person
     mapping (uint => Offer) public punksOfferedForSale;
+
+    // A record of the highest punk bid
+    mapping (uint => Bid) public punkBids;
 
     mapping (address => uint) public pendingWithdrawals;
 
@@ -40,6 +50,8 @@ contract CryptoPunks2 {
     event Transfer(address indexed from, address indexed to, uint256 value);
     event PunkTransfer(address indexed from, address indexed to, uint256 punkIndex);
     event PunkOffered(uint indexed punkIndex, uint minValue, address indexed toAddress);
+    event PunkBidEntered(uint indexed punkIndex, uint value, address indexed fromAddress);
+    event PunkBidWithdrawn(uint indexed punkIndex, uint value, address indexed fromAddress);
     event PunkBought(uint indexed punkIndex, uint value, address indexed fromAddress, address indexed toAddress);
     event PunkNoLongerForSale(uint indexed punkIndex);
 
@@ -136,6 +148,50 @@ contract CryptoPunks2 {
         // Remember to zero the pending refund before
         // sending to prevent re-entrancy attacks
         pendingWithdrawals[msg.sender] = 0;
+        msg.sender.transfer(amount);
+    }
+
+    function enterBidForPunk(uint punkIndex) payable {
+        if (punkIndex >= 10000) throw;
+        if (!allPunksAssigned) throw;                
+        if (punkIndexToAddress[punkIndex] == 0x0) throw;
+        if (punkIndexToAddress[punkIndex] == msg.sender) throw;
+        if (msg.value == 0) throw;
+        Bid existing = punkBids[punkIndex];
+        if (msg.value <= existing.value) throw;
+        if (existing.value > 0) {
+            // Refund the failing bid
+            pendingWithdrawals[existing.bidder] += existing.value;
+        }
+        punkBids[punkIndex] = Bid(true, punkIndex, msg.sender, msg.value);
+        PunkBidEntered(punkIndex, msg.value, msg.sender);
+    }
+
+    function acceptBidForPunk(uint punkIndex) {
+        if (punkIndex >= 10000) throw;
+        if (!allPunksAssigned) throw;                
+        if (punkIndexToAddress[punkIndex] != msg.sender) throw;
+        address seller = msg.sender;
+        Bid bid = punkBids[punkIndex];
+        if (bid.value == 0) throw;
+        punkIndexToAddress[punkIndex] = bid.bidder;
+        punkNoLongerForSale(punkIndex);
+        punkBids[punkIndex] = Bid(false, punkIndex, 0x0, 0);
+        pendingWithdrawals[seller] += bid.value;
+        PunkBought(punkIndex, bid.value, seller, bid.bidder);
+    }
+
+    function withdrawBidForPunk(uint punkIndex) {
+        if (punkIndex >= 10000) throw;
+        if (!allPunksAssigned) throw;                
+        if (punkIndexToAddress[punkIndex] == 0x0) throw;
+        if (punkIndexToAddress[punkIndex] == msg.sender) throw;
+        Bid bid = punkBids[punkIndex];
+        if (bid.bidder != msg.sender) throw;
+        PunkBidWithdrawn(punkIndex, bid.value, msg.sender);
+        uint amount = bid.value;
+        punkBids[punkIndex] = Bid(false, punkIndex, 0x0, 0);
+        // Refund the bid money
         msg.sender.transfer(amount);
     }
 
