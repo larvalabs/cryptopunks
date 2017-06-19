@@ -1,5 +1,5 @@
 pragma solidity ^0.4.8;
-contract CryptoPunks {
+contract CryptoPunks2 {
 
     // You can use this hash to verify the image file containing all the punks
     string public imageHash = "ac39af4793119ee46bbff351d8cb6b5f23da60222126add4268e261199a2921b";
@@ -44,7 +44,7 @@ contract CryptoPunks {
     event PunkNoLongerForSale(uint indexed punkIndex);
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function CryptoPunks() payable {
+    function CryptoPunks2() payable {
         //        balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
         owner = msg.sender;
         totalSupply = 10000;                        // Update total supply
@@ -63,7 +63,7 @@ contract CryptoPunks {
         punksRemainingToAssign--;
         Assign(to, punkIndex);
     }
-    
+
     function allInitialOwnersAssigned() {
         if (msg.sender != owner) throw;
         allPunksAssigned = true;
@@ -138,5 +138,5 @@ contract CryptoPunks {
         pendingWithdrawals[msg.sender] = 0;
         msg.sender.transfer(amount);
     }
-    
+
 }

@@ -1,5 +1,6 @@
 var CryptoPunks = artifacts.require("./CryptoPunks.sol");
 
+/*
 contract('CryptoPunks', function (accounts) {
     it("should have 10000 punks available to assign", function () {
         return CryptoPunks.deployed().then(function (instance) {
@@ -230,3 +231,4 @@ contract('CryptoPunks', function (accounts) {
         });
     });
 });
+*/
