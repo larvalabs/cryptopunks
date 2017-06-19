@@ -82,6 +82,7 @@ contract CryptoPunks2 {
     }
 
     function getPunk(uint punkIndex) {
+        if (!allPunksAssigned) throw;
         if (punksRemainingToAssign == 0) throw;
         if (punkIndexToAddress[punkIndex] != 0x0) throw;
         if (punkIndex >= 10000) throw;
@@ -93,6 +94,7 @@ contract CryptoPunks2 {
 
     // Transfer ownership of a punk to another user without requiring payment
     function transferPunk(address to, uint punkIndex) {
+        if (!allPunksAssigned) throw;
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
         if (punkIndex >= 10000) throw;
         punkIndexToAddress[punkIndex] = to;
@@ -103,6 +105,7 @@ contract CryptoPunks2 {
     }
 
     function punkNoLongerForSale(uint punkIndex) {
+        if (!allPunksAssigned) throw;
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
         if (punkIndex >= 10000) throw;
         punksOfferedForSale[punkIndex] = Offer(false, punkIndex, msg.sender, 0, 0x0);
@@ -110,6 +113,7 @@ contract CryptoPunks2 {
     }
 
     function offerPunkForSale(uint punkIndex, uint minSalePriceInWei) {
+        if (!allPunksAssigned) throw;
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
         if (punkIndex >= 10000) throw;
         punksOfferedForSale[punkIndex] = Offer(true, punkIndex, msg.sender, minSalePriceInWei, 0x0);
@@ -117,6 +121,7 @@ contract CryptoPunks2 {
     }
 
     function offerPunkForSaleToAddress(uint punkIndex, uint minSalePriceInWei, address toAddress) {
+        if (!allPunksAssigned) throw;
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
         if (punkIndex >= 10000) throw;
         punksOfferedForSale[punkIndex] = Offer(true, punkIndex, msg.sender, minSalePriceInWei, toAddress);
@@ -124,6 +129,7 @@ contract CryptoPunks2 {
     }
 
     function buyPunk(uint punkIndex) payable {
+        if (!allPunksAssigned) throw;
         Offer offer = punksOfferedForSale[punkIndex];
         if (punkIndex >= 10000) throw;
         if (!offer.isForSale) throw;                // punk not actually for sale
@@ -144,6 +150,7 @@ contract CryptoPunks2 {
     }
 
     function withdraw() {
+        if (!allPunksAssigned) throw;
         uint amount = pendingWithdrawals[msg.sender];
         // Remember to zero the pending refund before
         // sending to prevent re-entrancy attacks
