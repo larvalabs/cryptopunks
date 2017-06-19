@@ -181,7 +181,12 @@ contract CryptoPunks2 {
         address seller = msg.sender;
         Bid bid = punkBids[punkIndex];
         if (bid.value == 0) throw;
+
         punkIndexToAddress[punkIndex] = bid.bidder;
+        balanceOf[seller]--;
+        balanceOf[bid.bidder]++;
+        Transfer(seller, bid.bidder, 1);
+
         punkNoLongerForSale(punkIndex);
         uint amount = bid.value;
         punkBids[punkIndex] = Bid(false, punkIndex, 0x0, 0);
