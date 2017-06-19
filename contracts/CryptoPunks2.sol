@@ -183,8 +183,9 @@ contract CryptoPunks2 {
         if (bid.value == 0) throw;
         punkIndexToAddress[punkIndex] = bid.bidder;
         punkNoLongerForSale(punkIndex);
+        uint amount = bid.value;
         punkBids[punkIndex] = Bid(false, punkIndex, 0x0, 0);
-        pendingWithdrawals[seller] += bid.value;
+        pendingWithdrawals[seller] += amount;
         PunkBought(punkIndex, bid.value, seller, bid.bidder);
     }
 
