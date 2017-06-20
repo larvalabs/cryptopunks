@@ -26,7 +26,7 @@ var expectThrow = async function(promise) {
 
 var compareBalance = function(previousBalance, currentBalance, amount) {
   var strPrevBalance = String(previousBalance);
-  var digitsToCompare = 8;
+  var digitsToCompare = 10;
   var subPrevBalance = strPrevBalance.substr(strPrevBalance.length - digitsToCompare, strPrevBalance.length);
   var strBalance = String(currentBalance);
   var subCurrBalance = strBalance.substr(strBalance.length - digitsToCompare, strBalance.length);

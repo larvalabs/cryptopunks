@@ -97,6 +97,9 @@ contract CryptoPunks2 {
         if (!allPunksAssigned) throw;
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
         if (punkIndex >= 10000) throw;
+        if (punksOfferedForSale[punkIndex].isForSale) {
+            punkNoLongerForSale(punkIndex);
+        }
         punkIndexToAddress[punkIndex] = to;
         balanceOf[msg.sender]--;
         balanceOf[to]++;

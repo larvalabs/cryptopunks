@@ -36,6 +36,8 @@ contract('CryptoPunks2-fullRun', function (accounts) {
                 // assign a punk to 2
                 return contract.setInitialOwner(accounts[2], 2);
             }).then(function () {
+                return contract.allInitialOwnersAssigned();
+            }).then(function () {
                 // Try to transfer a punk from someone who doesn't own it
                 return contract.transferPunk(accounts[1], 1, {from: accounts[1]});
             }).then(function (returnValue) {
