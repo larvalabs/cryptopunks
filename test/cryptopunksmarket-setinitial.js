@@ -1,9 +1,9 @@
 require('babel-polyfill');
-var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
+var CryptoPunksMarket = artifacts.require("./CryptoPunksMarket.sol");
 
-contract('CryptoPunks2-setInitial', function (accounts) {
+contract('CryptoPunksMarket-setInitial', function (accounts) {
   it("Should start with 0 balance", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
 
     await contract.setInitialOwner(accounts[0], 0);
     var balance = await contract.balanceOf.call(accounts[0]);
@@ -26,7 +26,7 @@ contract('CryptoPunks2-setInitial', function (accounts) {
 
   }),
     it("Can not claim punk after set initial owners assigned", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       await contract.allInitialOwnersAssigned();
       try {
         await contract.setInitialOwner(accounts[0], 0);
@@ -37,7 +37,7 @@ contract('CryptoPunks2-setInitial', function (accounts) {
 
     }),
     it("can not pass an invalid index to assign initial", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       try {
         await contract.setInitialOwner(accounts[0], 10000);
         assert(false, "Should have thrown exception.");
@@ -47,7 +47,7 @@ contract('CryptoPunks2-setInitial', function (accounts) {
 
     }),
     it("only owner can assign initial", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       try {
         await contract.setInitialOwner(accounts[1], 1);
         assert(false, "Should have thrown exception.");

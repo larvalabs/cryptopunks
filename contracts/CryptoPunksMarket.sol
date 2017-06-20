@@ -1,5 +1,5 @@
 pragma solidity ^0.4.8;
-contract CryptoPunks2 {
+contract CryptoPunksMarket {
 
     // You can use this hash to verify the image file containing all the punks
     string public imageHash = "ac39af4793119ee46bbff351d8cb6b5f23da60222126add4268e261199a2921b";
@@ -56,7 +56,7 @@ contract CryptoPunks2 {
     event PunkNoLongerForSale(uint indexed punkIndex);
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function CryptoPunks2() payable {
+    function CryptoPunksMarket() payable {
         //        balanceOf[msg.sender] = initialSupply;              // Give the creator all initial tokens
         owner = msg.sender;
         totalSupply = 10000;                        // Update total supply

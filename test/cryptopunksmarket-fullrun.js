@@ -1,9 +1,9 @@
 require('babel-polyfill');
-var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
+var CryptoPunksMarket = artifacts.require("./CryptoPunksMarket.sol");
 
-contract('CryptoPunks2-fullRun', function (accounts) {
+contract('CryptoPunksMarket-fullRun', function (accounts) {
     it("should have 10000 punks available to assign", function () {
-        return CryptoPunks2.deployed().then(function (instance) {
+        return CryptoPunksMarket.deployed().then(function (instance) {
             // console.log("Deployed");
             return instance.punksRemainingToAssign.call();
         }).then(function (balance) {
@@ -16,7 +16,7 @@ contract('CryptoPunks2-fullRun', function (accounts) {
             var punksRemainingToAssign;
             var NULL_ACCOUNT = "0x0000000000000000000000000000000000000000";
 
-            return CryptoPunks2.deployed().then(function (instance) {
+            return CryptoPunksMarket.deployed().then(function (instance) {
                 // console.log("Deployed");
                 contract = instance;
                 return instance.setInitialOwner(accounts[0], 0);
@@ -177,7 +177,7 @@ contract('CryptoPunks2-fullRun', function (accounts) {
     }),
     it("should not be able to send bad number to setInitialOwner", function () {
         var contract;
-        return CryptoPunks2.deployed().then(function (instance) {
+        return CryptoPunksMarket.deployed().then(function (instance) {
             contract = instance;
             return instance.setInitialOwner(accounts[0], 10000);
           }).then(function () {
@@ -197,7 +197,7 @@ contract('CryptoPunks2-fullRun', function (accounts) {
           })
       }),
       it("only owner can call setInitialOwner", async function () {
-          var contract = await CryptoPunks2.deployed();
+          var contract = await CryptoPunksMarket.deployed();
           try {
             await instance.setInitialOwner(accounts[1], 10000);
             assert(false, "Should have thrown exception.");

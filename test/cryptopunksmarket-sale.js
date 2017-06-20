@@ -1,6 +1,6 @@
 require('babel-polyfill');
 
-var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
+var CryptoPunksMarket = artifacts.require("./CryptoPunksMarket.sol");
 
 var expectThrow = async function (promise) {
   try {
@@ -36,16 +36,16 @@ var compareBalance = function(previousBalance, currentBalance, amount) {
 
 var NULL_ACCOUNT = "0x0000000000000000000000000000000000000000";
 
-contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
+contract('CryptoPunksMarket-buySellRemoveFromSale', function (accounts) {
   it("can not offer for sale allPunksAssigned = false", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await contract.setInitialOwner(accounts[0], 0);
     var allAssigned = await contract.allPunksAssigned.call();
     assert.equal(false, allAssigned, "allAssigned should be false to start.");
     await expectThrow(contract.offerPunkForSale(0, 1000));
   }),
     it("can offer a punk", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
 
       await contract.setInitialOwner(accounts[1], 1);
       await contract.setInitialOwner(accounts[2], 2);
@@ -62,12 +62,12 @@ contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
       assert.equal(NULL_ACCOUNT, offer[4]);
     }),
     it("can not buy a punk that is not for sale", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
 
       await expectThrow(contract.buyPunk(1, 10000000));
     }),
     it("can not buy a punk for too little money", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
 
       var ethBalance = await web3.eth.getBalance(accounts[1]);
       console.log("Account 1 has " + ethBalance + " Wei");
@@ -75,15 +75,15 @@ contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
       await expectThrow(contract.buyPunk(0, {from: accounts[1], value: 10}));
     }),
     it("can not offer a punk with an invalid index", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       await expectThrow(contract.offerPunkForSale(100000, 1000));
     }),
     it("can not buy a punk with an invalid index", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       await expectThrow(contract.buyPunk(100000, {value: 10000000}));
     }),
     it("can buy a punk that is for sale", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       await contract.buyPunk(0, {from: accounts[1], value: 1000});
 
       var offer = await contract.punksOfferedForSale.call(0);
@@ -105,7 +105,7 @@ contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
 
     }),
     it("can withdraw money from sale", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       var accountBalancePrev = await web3.eth.getBalance(accounts[0]);
       await contract.withdraw();
       var accountBalance = await web3.eth.getBalance(accounts[0]);
@@ -115,7 +115,7 @@ contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
       assert.equal(balanceToWidthdraw.valueOf(), 0);
     }),
     it("can offer for sale then withdraw", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
 
       await contract.offerPunkForSale(1, 1333, {from: accounts[1]});
 
@@ -142,7 +142,7 @@ contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
 
     }),
     it("can offer for sale to specific account", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
 
       await contract.offerPunkForSaleToAddress(1, 1333, accounts[0], {from: accounts[1]});
 
@@ -180,7 +180,7 @@ contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
 
     }),
     it("can withdraw money from sale to specific account", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       var accountBalancePrev = await web3.eth.getBalance(accounts[1]);
       await contract.withdraw({from: accounts[1]});
       var accountBalance = await web3.eth.getBalance(accounts[1]);
@@ -191,7 +191,7 @@ contract('CryptoPunks2-buySellRemoveFromSale', function (accounts) {
 
     }),
     it("transfer should cancel offers", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       await contract.offerPunkForSale(1, 2333);
 
       var offer = await contract.punksOfferedForSale.call(1);

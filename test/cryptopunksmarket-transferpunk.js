@@ -1,6 +1,6 @@
 require('babel-polyfill');
 
-var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
+var CryptoPunksMarket = artifacts.require("./CryptoPunksMarket.sol");
 
 var expectThrow = async function (promise) {
   try {
@@ -24,16 +24,16 @@ var expectThrow = async function (promise) {
   assert.fail('Expected throw not received');
 };
 
-contract('CryptoPunks2-transferPunk', function (accounts) {
+contract('CryptoPunksMarket-transferPunk', function (accounts) {
   it("can not get transfer punk allPunksAssigned = false", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await contract.setInitialOwner(accounts[0], 0);
     var allAssigned = await contract.allPunksAssigned.call();
     assert.equal(false, allAssigned, "allAssigned should be false to start.");
     await expectThrow(contract.transferPunk(accounts[1], 0));
   }),
     it("can transfer a punk to someone else", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
 
       // Initial owner set in previous test :|
       // await contract.setInitialOwner(accounts[0], 0);
@@ -52,11 +52,11 @@ contract('CryptoPunks2-transferPunk', function (accounts) {
 
     }),
     it("can not transfer someone else's punk", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       await expectThrow(contract.transferPunk(accounts[2], 0));  // Now owned by account[1]
     }),
     it("can not use invalid punk index", async function () {
-      var contract = await CryptoPunks2.deployed();
+      var contract = await CryptoPunksMarket.deployed();
       await expectThrow(contract.transferPunk(accounts[1], 10000));
     })
 

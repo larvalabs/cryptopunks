@@ -1,6 +1,6 @@
 require('babel-polyfill');
 
-var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
+var CryptoPunksMarket = artifacts.require("./CryptoPunksMarket.sol");
 
 var expectThrow = async function(promise) {
   try {
@@ -24,9 +24,9 @@ var expectThrow = async function(promise) {
   assert.fail('Expected throw not received');
 };
 
-contract('CryptoPunks2-getPunk', function (accounts) {
+contract('CryptoPunksMarket-getPunk', function (accounts) {
   it("can not get punks while allPunksAssigned = false", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     var balance = await contract.balanceOf.call(accounts[0]);
     console.log("Pre Balance: " + balance);
 
@@ -38,7 +38,7 @@ contract('CryptoPunks2-getPunk', function (accounts) {
     console.log("Balance after fail: " + balance);
   }),
   it("can get a punk but no one else can get it after", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
 
     await contract.allInitialOwnersAssigned();
 

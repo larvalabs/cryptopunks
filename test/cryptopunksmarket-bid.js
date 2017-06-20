@@ -1,6 +1,6 @@
 require('babel-polyfill');
 
-var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
+var CryptoPunksMarket = artifacts.require("./CryptoPunksMarket.sol");
 
 var expectThrow = async function(promise) {
   try {
@@ -34,9 +34,9 @@ var compareBalance = function(previousBalance, currentBalance, amount) {
   assert.equal(Number(subCurrBalance), Number(subPrevBalance) + amount, "Account 1 balance incorrect after withdrawal.");
 };
 
-contract('CryptoPunks2-bid', function (accounts) {
+contract('CryptoPunksMarket-bid', function (accounts) {
   it("attempt to bid on an unclaimed to punk", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     // Open up the contract for action
     await contract.allInitialOwnersAssigned();
     try {
@@ -50,26 +50,26 @@ contract('CryptoPunks2-bid', function (accounts) {
     await expectThrow(contract.enterBidForPunk(2, {from: accounts[0], value: 1}));
   }),
   it("attempt to bid on your own punk", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await expectThrow(contract.enterBidForPunk(0, {from: accounts[0], value: 1}));
   }),
   it("attempt to bid with zero value", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await expectThrow(contract.enterBidForPunk(1, {from: accounts[0], value: 0}));
   }),
   it("do a real bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
     await contract.enterBidForPunk(1, {from: accounts[0], value: 1000});
     var account0Balance = await web3.eth.getBalance(accounts[0]);
     compareBalance(account0BalancePrev, account0Balance, -1000);
   }),
   it("wrong address tries to cancel bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await expectThrow(contract.withdrawBidForPunk(1, {from: accounts[2]}));
   }),
   it("cancel bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
     await contract.withdrawBidForPunk(1, {from: accounts[0]});
     var account0Balance = await web3.eth.getBalance(accounts[0]);
@@ -79,18 +79,18 @@ contract('CryptoPunks2-bid', function (accounts) {
     assert.equal(false, bid[0]);
   }),
   it("do another real bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
     await contract.enterBidForPunk(1, {from: accounts[0], value: 2000});
     var account0Balance = await web3.eth.getBalance(accounts[0]);
     compareBalance(account0BalancePrev, account0Balance, -2000);
   }),
   it("bid underneath an existing bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await expectThrow(contract.enterBidForPunk(1, {from: accounts[2], value: 500}));
   }),
   it("outbid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     var account2BalancePrev = await web3.eth.getBalance(accounts[2]);
     await contract.enterBidForPunk(1, {from: accounts[2], value: 3000});
     // todo - check to see if A2's balance went down
@@ -105,19 +105,19 @@ contract('CryptoPunks2-bid', function (accounts) {
     assert.equal(0, newAmount);
   }),
   it("wrong owner tries to accept bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await expectThrow(contract.acceptBidForPunk(1, 3000, {from: accounts[0]}));
   }),
   it("try to accept bid for a punk that has no bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await expectThrow(contract.acceptBidForPunk(0, 3000, {from: accounts[0]}));
   }),
   it("try to accept bid for a punk with too high an accept value", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await expectThrow(contract.acceptBidForPunk(1, 4000, {from: accounts[1]}));
   }),
   it("accept bid from A2", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
 
     var bid = await contract.punkBids.call(1);
     var currentOwner = await contract.punkIndexToAddress.call(1);
@@ -140,7 +140,7 @@ contract('CryptoPunks2-bid', function (accounts) {
     assert.equal(false, bid[0]);
   }),
   it("offer up a punk for sale, then get a lower bid, accept that bid", async function () {
-    var contract = await CryptoPunks2.deployed();
+    var contract = await CryptoPunksMarket.deployed();
     await contract.offerPunkForSale(0, 9000, {from: accounts[0]});
     await contract.enterBidForPunk(0, {from: accounts[2], value: 5000});
     await contract.acceptBidForPunk(0, 5000, {from: accounts[0]});
