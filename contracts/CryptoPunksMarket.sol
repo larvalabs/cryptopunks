@@ -70,15 +70,23 @@ contract CryptoPunksMarket {
         if (msg.sender != owner) throw;
         if (allPunksAssigned) throw;
         if (punkIndex >= 10000) throw;
-
-        if (punkIndexToAddress[punkIndex] != 0x0) {
-            balanceOf[punkIndexToAddress[punkIndex]]--;
-        } else {
-            punksRemainingToAssign--;
+        if (punkIndexToAddress[punkIndex] != to) {
+            if (punkIndexToAddress[punkIndex] != 0x0) {
+                balanceOf[punkIndexToAddress[punkIndex]]--;
+            } else {
+                punksRemainingToAssign--;
+            }
+            punkIndexToAddress[punkIndex] = to;
+            balanceOf[to]++;
+            Assign(to, punkIndex);
         }
-        punkIndexToAddress[punkIndex] = to;
-        balanceOf[to]++;
-        Assign(to, punkIndex);
+    }
+
+    function setInitialOwners(address[] addresses, uint[] indices) {
+        uint n = addresses.length;
+        for (uint i = 0; i < n; i++) {
+            setInitialOwner(addresses[i], indices[i]);
+        }
     }
 
     function allInitialOwnersAssigned() {

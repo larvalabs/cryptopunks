@@ -35,12 +35,13 @@ var compareBalance = function(previousBalance, currentBalance, amount) {
 };
 
 contract('CryptoPunksMarket-edgecases', function (accounts) {
-  it("re-assign a punk during assignment phase", async function () {
+  it("re-assign a punk during assignment phase, assign same punk twice", async function () {
     var contract = await CryptoPunksMarket.deployed();
     // Assign a two punks, then re-assign one of them
     await contract.setInitialOwner(accounts[3], 500, {from: accounts[0]});
     await contract.setInitialOwner(accounts[4], 501, {from: accounts[0]});
     await contract.setInitialOwner(accounts[4], 500, {from: accounts[0]});
+    await contract.setInitialOwner(accounts[4], 501, {from: accounts[0]});
     // Check the balances
     var balance3 = await contract.balanceOf.call(accounts[3]);
     var balance4 = await contract.balanceOf.call(accounts[4]);
