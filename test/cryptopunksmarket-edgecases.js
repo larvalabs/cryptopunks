@@ -61,14 +61,18 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     await contract.getPunk(1, {from: accounts[1]});
     await contract.getPunk(2, {from: accounts[2]});
     // A0 bids on punk 1
+    var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
     await contract.enterBidForPunk(1, {from: accounts[0], value: 8000});
     // A1 owner transfers it to A2
     await contract.transferPunk(accounts[2], 1, {from: accounts[1]});
     // A2 accepts A0's original bid
-    var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
-    await contract.acceptBidForPunk(1, 8000, {from: accounts[2]}));
+    var pendingAmountAcc0 = await contract.pendingWithdrawals.call(accounts[0]);
+    assert.equal(0, pendingAmountAcc0);
+    console.log("Prev acc0: " + account0BalancePrev);
+    await contract.acceptBidForPunk(1, 8000, {from: accounts[2]});
     // Make sure A0 was charged
     var account0Balance = await web3.eth.getBalance(accounts[0]);
+    console.log("Post acc0: " + account0Balance);
     compareBalance(account0BalancePrev, account0Balance, -8000);
     // Make sure A2 was paid
     var amount = await contract.pendingWithdrawals.call(accounts[2]);
@@ -123,24 +127,32 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
   }),
   it("place a bid, then owner offers for sale, then bidder accepts that offer", async function () {
     var contract = await CryptoPunksMarket.deployed();
+    var punkIndexToUse = 0;
     // A1 bids on punk 1
-    await contract.enterBidForPunk(1, {from: accounts[1], value: 4000});
+    console.log("About to enter bid");
+    var preOwner = await contract.punkIndexToAddress.call(punkIndexToUse);
+    console.log("Pre owner: " + preOwner);
+    await contract.enterBidForPunk(punkIndexToUse, {from: accounts[1], value: 14000});
+    console.log("Enter bid");
     // A2 offers it for sale
-    await contract.offerPunkForSale(0, 5000, {from: accounts[2]});
+    await contract.offerPunkForSale(punkIndexToUse, 15000, {from: accounts[2]});
+    console.log("Offer for sale");
     // A1 buys
     var account1BalancePrev = await web3.eth.getBalance(accounts[1]);
-    await contract.buyPunk(0, {from: accounts[1], value: 5000});
+    await contract.buyPunk(punkIndexToUse, {from: accounts[1], value: 15000});
+    console.log("Buy punk");
     // Make sure A1 was charged
     var account1Balance = await web3.eth.getBalance(accounts[1]);
-    compareBalance(account1BalancePrev, account2Balance, -5000);
+    compareBalance(account1BalancePrev, account1Balance, -15000);
     // Make sure A2 was paid
     var amount = await contract.pendingWithdrawals.call(accounts[2]);
-    assert.equal(5000, amount);
+    console.log("Amount: " + amount);
+    assert.equal(15000, amount);
     await contract.withdraw({from: accounts[2]});
     var newAmount = await contract.pendingWithdrawals.call(accounts[2]);
     assert.equal(0, newAmount);    
     // Check ownership
-    var currentOwner = await contract.punkIndexToAddress.call(1);
+    var currentOwner = await contract.punkIndexToAddress.call(punkIndexToUse);
     assert.equal(accounts[1], currentOwner);
     // Check the balances
     var balance0 = await contract.balanceOf.call(accounts[0]);
@@ -150,11 +162,12 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     assert.equal(balance1, 1);
     assert.equal(balance2, 1);
     // Make sure the bid is now gone
-    var bid = await contract.punkBids.call(1);
+    var bid = await contract.punkBids.call(punkIndexToUse);
     assert.equal(false, bid[1]);
     // Make sure A1 was refunded for bid
     var amount1 = await contract.pendingWithdrawals.call(accounts[1]);
-    assert.equal(4000, amount1);
+    console.log("Amount1: " + amount1);
+    assert.equal(15000, amount1);
     await contract.withdraw({from: accounts[1]});
     var newAmount1 = await contract.pendingWithdrawals.call(accounts[1]);
     assert.equal(0, newAmount1);
