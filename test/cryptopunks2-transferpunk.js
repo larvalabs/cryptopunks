@@ -2,7 +2,7 @@ require('babel-polyfill');
 
 var CryptoPunks2 = artifacts.require("./CryptoPunks2.sol");
 
-var expectThrow = async function(promise) {
+var expectThrow = async function (promise) {
   try {
     await promise;
   } catch (error) {
@@ -32,33 +32,32 @@ contract('CryptoPunks2-transferPunk', function (accounts) {
     assert.equal(false, allAssigned, "allAssigned should be false to start.");
     await expectThrow(contract.transferPunk(accounts[1], 0));
   }),
-  it("can transfer a punk to someone else", async function () {
-    var contract = await CryptoPunks2.deployed();
+    it("can transfer a punk to someone else", async function () {
+      var contract = await CryptoPunks2.deployed();
 
-    await contract.setInitialOwner(accounts[0], 0);
-    await contract.allInitialOwnersAssigned();
-    await contract.transferPunk(accounts[1], 0);
+      // Initial owner set in previous test :|
+      // await contract.setInitialOwner(accounts[0], 0);
+      await contract.allInitialOwnersAssigned();
+      await contract.transferPunk(accounts[1], 0);
 
-    await contract.getPunk(0);
-    var balance = await contract.balanceOf.call(accounts[0]);
-    console.log("Balance: " + balance);
-    assert.equal(balance.valueOf(), 1, "Didn't get the initial punk");
-    var owner = await contract.punkIndexToAddress.call(0);
-    assert.equal(owner, accounts[0], "Ownership array wrong");
-    var remaining = await contract.punksRemainingToAssign.call();
-    assert.equal(9999, remaining);
+      var owner = await contract.punkIndexToAddress.call(0);
+      assert.equal(owner, accounts[1], "Punk not owned by transfer recipient");
 
-    try {
-      await contract.getPunk(0);
-      assert(false, "Should have thrown exception.");
-    } catch (err) {
-      // Should catch an exception
-    }
+      var balance = await contract.balanceOf.call(accounts[0]);
+      // console.log("Balance acc0: " + balance);
+      assert.equal(balance.valueOf(), 0, "Punk balance account 0 incorrect");
+      var balance1 = await contract.balanceOf.call(accounts[1]);
+      // console.log("Balance acc1: " + balance1);
+      assert.equal(balance1.valueOf(), 1, "Punk balance account 1 incorrect");
 
-    var remainingAfter = await contract.punksRemainingToAssign.call();
-    assert.equal(9999, remainingAfter);
-    var balanceAfter = await contract.balanceOf.call(accounts[0]);
-    assert.equal(1, balanceAfter);
+    }),
+    it("can not transfer someone else's punk", async function () {
+      var contract = await CryptoPunks2.deployed();
+      await expectThrow(contract.transferPunk(accounts[2], 0));  // Now owned by account[1]
+    }),
+    it("can not use invalid punk index", async function () {
+      var contract = await CryptoPunks2.deployed();
+      await expectThrow(contract.transferPunk(accounts[1], 10000));
+    })
 
-  })
 });
