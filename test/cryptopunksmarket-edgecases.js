@@ -50,152 +50,177 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     var currentOwner = await contract.punkIndexToAddress.call(500);
     assert.equal(accounts[4], currentOwner);
     // Check the number of punks left to assign
-    var leftToAssign = await contract.punksRemainingToAssign.call(accounts[0]);
+    var leftToAssign = await contract.punksRemainingToAssign.call();
     assert.equal(leftToAssign, 9998);
   }),
   it("place a bid, then transfer the punk, then new owner accepts bid", async function () {
     var contract = await CryptoPunksMarket.deployed();
     // Open up the contract for action, assign some punks
     await contract.allInitialOwnersAssigned();
-    await contract.getPunk(0, {from: accounts[0]});
-    await contract.getPunk(1, {from: accounts[1]});
-    await contract.getPunk(2, {from: accounts[2]});
-    // A0 bids on punk 1
-    var account0BalancePrev = await web3.eth.getBalance(accounts[0]);
-    await contract.enterBidForPunk(1, {from: accounts[0], value: 8000});
-    // A1 owner transfers it to A2
-    await contract.transferPunk(accounts[2], 1, {from: accounts[1]});
-    // A2 accepts A0's original bid
-    var pendingAmountAcc0 = await contract.pendingWithdrawals.call(accounts[0]);
-    assert.equal(0, pendingAmountAcc0);
-    console.log("Prev acc0: " + account0BalancePrev);
-    await contract.acceptBidForPunk(1, 8000, {from: accounts[2]});
+    await contract.getPunk(1001, {from: accounts[1]});
+    await contract.getPunk(1002, {from: accounts[5]});
+    await contract.getPunk(1003, {from: accounts[8]});
+    var punkIndex = 1001;
+    var firstOwner = accounts[1];
+    var bidder = accounts[0];
+    var newOwner = accounts[2];
+    var bidPrice = 8000;
+    // Check initial ownership
+    var initialOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(firstOwner, initialOwner);
+    // Bidder bids on punk
+    var accountBalancePrev = await web3.eth.getBalance(bidder);
+    await contract.enterBidForPunk(punkIndex, {from: bidder, value: bidPrice});
+    // Owner transfers it to New Owner
+    await contract.transferPunk(newOwner, punkIndex, {from: firstOwner});
+    // New owner accepts original bid
+    var pendingAmount = await contract.pendingWithdrawals.call(bidder);
+    assert.equal(0, pendingAmount);
+    // console.log("Prev acc0: " + accountBalancePrev);
+    await contract.acceptBidForPunk(punkIndex, bidPrice, {from: newOwner});
     // Make sure A0 was charged
-    var account0Balance = await web3.eth.getBalance(accounts[0]);
-    console.log("Post acc0: " + account0Balance);
-    compareBalance(account0BalancePrev, account0Balance, -8000);
-    // Make sure A2 was paid
-    var amount = await contract.pendingWithdrawals.call(accounts[2]);
-    assert.equal(8000, amount);
-    await contract.withdraw({from: accounts[2]});
-    var newAmount = await contract.pendingWithdrawals.call(accounts[2]);
+    var accountBalance = await web3.eth.getBalance(bidder);
+    //console.log("Post acc0: " + accountBalance);
+    compareBalance(accountBalancePrev, accountBalance, -bidPrice);
+    // Make sure new owner was paid
+    var amount = await contract.pendingWithdrawals.call(newOwner);
+    assert.equal(bidPrice, amount);
+    await contract.withdraw({from: newOwner});
+    var newAmount = await contract.pendingWithdrawals.call(newOwner);
     assert.equal(0, newAmount);
     // Check ownership
-    var currentOwner = await contract.punkIndexToAddress.call(1);
-    assert.equal(accounts[0], currentOwner);
+    var currentOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(bidder, currentOwner);
     // Check the balances
-    var balance0 = await contract.balanceOf.call(accounts[0]);
-    var balance1 = await contract.balanceOf.call(accounts[1]);
-    var balance2 = await contract.balanceOf.call(accounts[2]);
-    assert.equal(balance0, 2);
+    var balance0 = await contract.balanceOf.call(bidder);
+    var balance1 = await contract.balanceOf.call(firstOwner);
+    var balance2 = await contract.balanceOf.call(newOwner);
+    assert.equal(balance0, 1);
     assert.equal(balance1, 0);
-    assert.equal(balance2, 1);
+    assert.equal(balance2, 0);
   }),
   it("place a bid, then owner offers for sale, somebody accepts that offer", async function () {
     var contract = await CryptoPunksMarket.deployed();
-    // A1 bids on punk 0
-    await contract.enterBidForPunk(0, {from: accounts[1], value: 7000});
-    // A0 offers it for sale
-    await contract.offerPunkForSale(0, 9000, {from: accounts[0]});
-    // A2 buys
-    var account2BalancePrev = await web3.eth.getBalance(accounts[2]);
-    await contract.buyPunk(0, {from: accounts[2], value: 9000});
-    // Make sure A2 was charged
-    var account2Balance = await web3.eth.getBalance(accounts[2]);
-    compareBalance(account2BalancePrev, account2Balance, -9000);
-    // Make sure A0 was paid
-    var amount = await contract.pendingWithdrawals.call(accounts[0]);
-    assert.equal(9000, amount);
-    await contract.withdraw({from: accounts[0]});
-    var newAmount = await contract.pendingWithdrawals.call(accounts[0]);
+    var punkIndex = 1002;
+    var firstOwner = accounts[5];
+    var bidder = accounts[6];
+    var buyer = accounts[7];
+    var bidPrice = 7000;
+    var salePrice = 9000;
+    // Check initial ownership
+    var initialOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(firstOwner, currentOwner);
+    // Bidder bids on punk
+    await contract.enterBidForPunk(punkIndex, {from: bidder, value: bidPrice});
+    // Owner offers it for sale
+    await contract.offerPunkForSale(punkIndex, salePrice, {from: firstOwner});
+    // Buyer buys
+    var accountBalancePrev = await web3.eth.getBalance(buyer);
+    await contract.buyPunk(punkIndex, {from: buyer, value: salePrice});
+    // Make sure Buyer was charged
+    var accountBalance = await web3.eth.getBalance(buyer);
+    compareBalance(accountBalancePrev, accountBalance, -salePrice);
+    // Make sure First Owner was paid
+    var amount = await contract.pendingWithdrawals.call(firstOwner);
+    assert.equal(salePrice, amount);
+    await contract.withdraw({from: firstOwner});
+    var newAmount = await contract.pendingWithdrawals.call(firstOwner);
     assert.equal(0, newAmount);
     // Check ownership
-    var currentOwner = await contract.punkIndexToAddress.call(0);
-    assert.equal(accounts[2], currentOwner);
+    var currentOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(buyer, currentOwner);
     // Check the balances
-    var balance0 = await contract.balanceOf.call(accounts[0]);
-    var balance1 = await contract.balanceOf.call(accounts[1]);
-    var balance2 = await contract.balanceOf.call(accounts[2]);
-    assert.equal(balance0, 1);
+    var balance0 = await contract.balanceOf.call(bidder);
+    var balance1 = await contract.balanceOf.call(firstOwner);
+    var balance2 = await contract.balanceOf.call(buyer);
+    assert.equal(balance0, 0);
     assert.equal(balance1, 0);
-    assert.equal(balance2, 2);
+    assert.equal(balance2, 1);
     // Make sure the bid is still in place
-    var bid = await contract.punkBids.call(0);
+    var bid = await contract.punkBids.call(punkIndex);
     assert.equal(true, bid[0]);
     assert.equal(0, bid[1]);
-    assert.equal(7000, bid[3]);
+    assert.equal(bidPrice, bid[3]);
   }),
   it("place a bid, then owner offers for sale, then bidder accepts that offer", async function () {
     var contract = await CryptoPunksMarket.deployed();
-    var punkIndexToUse = 0;
-    // A1 bids on punk 1
+    var punkIndex = 1003;
+    var firstOwner = accounts[8];
+    var bidder = accounts[9];
+    var bidPrice = 14000;
+    var salePrice = 15000;
+    // Check initial ownership
+    var initialOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(firstOwner, currentOwner);
+    // Bidder bids on punk
     console.log("About to enter bid");
-    var preOwner = await contract.punkIndexToAddress.call(punkIndexToUse);
-    console.log("Pre owner: " + preOwner);
-    await contract.enterBidForPunk(punkIndexToUse, {from: accounts[1], value: 14000});
+    var accountBalancePrev = await web3.eth.getBalance(bidder);
+    await contract.enterBidForPunk(punkIndex, {from: bidder, value: bidPrice});
     console.log("Enter bid");
-    // A2 offers it for sale
-    await contract.offerPunkForSale(punkIndexToUse, 15000, {from: accounts[2]});
+    // Owner offers it for sale
+    await contract.offerPunkForSale(punkIndex, salePrice, {from: firstOwner});
     console.log("Offer for sale");
-    // A1 buys
-    var account1BalancePrev = await web3.eth.getBalance(accounts[1]);
-    await contract.buyPunk(punkIndexToUse, {from: accounts[1], value: 15000});
+    // Bidder buys
+    await contract.buyPunk(punkIndex, {from: bidder, value: 15000});
     console.log("Buy punk");
-    // Make sure A1 was charged
-    var account1Balance = await web3.eth.getBalance(accounts[1]);
-    compareBalance(account1BalancePrev, account1Balance, -15000);
-    // Make sure A2 was paid
-    var amount = await contract.pendingWithdrawals.call(accounts[2]);
+    // Make sure bidder was charged for both bid and sale
+    var accountBalance = await web3.eth.getBalance(bidder);
+    compareBalance(accountBalancePrev, accountBalance, -(bidPrice + salePrice));
+    // Make sure seller was paid
+    var amount = await contract.pendingWithdrawals.call(firstOwner);
     console.log("Amount: " + amount);
-    assert.equal(15000, amount);
-    await contract.withdraw({from: accounts[2]});
-    var newAmount = await contract.pendingWithdrawals.call(accounts[2]);
+    assert.equal(salePrice, amount);
+    await contract.withdraw({from: firstOwner});
+    var newAmount = await contract.pendingWithdrawals.call(firstOwner);
     assert.equal(0, newAmount);    
     // Check ownership
-    var currentOwner = await contract.punkIndexToAddress.call(punkIndexToUse);
-    assert.equal(accounts[1], currentOwner);
+    var currentOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(bidder, currentOwner);
     // Check the balances
-    var balance0 = await contract.balanceOf.call(accounts[0]);
-    var balance1 = await contract.balanceOf.call(accounts[1]);
-    var balance2 = await contract.balanceOf.call(accounts[2]);
+    var balance0 = await contract.balanceOf.call(bidder);
+    var balance1 = await contract.balanceOf.call(firstOwner);
     assert.equal(balance0, 1);
-    assert.equal(balance1, 1);
-    assert.equal(balance2, 1);
+    assert.equal(balance1, 0);
     // Make sure the bid is now gone
-    var bid = await contract.punkBids.call(punkIndexToUse);
+    var bid = await contract.punkBids.call(punkIndex);
     assert.equal(false, bid[1]);
-    // Make sure A1 was refunded for bid
-    var amount1 = await contract.pendingWithdrawals.call(accounts[1]);
+    // Make sure bidder was refunded for bid
+    var amount1 = await contract.pendingWithdrawals.call(bidder);
     console.log("Amount1: " + amount1);
-    assert.equal(15000, amount1);
-    await contract.withdraw({from: accounts[1]});
-    var newAmount1 = await contract.pendingWithdrawals.call(accounts[1]);
+    assert.equal(bidPrice, amount1);
+    await contract.withdraw({from: bidder});
+    var newAmount1 = await contract.pendingWithdrawals.call(bidder);
     assert.equal(0, newAmount1);
   }),
   it("place a bid, then owner transfers punk to bidder", async function () {
     var contract = await CryptoPunksMarket.deployed();
-    // A1 bids on punk 2
-    await contract.enterBidForPunk(2, {from: accounts[1], value: 10000});
-    // A2 transfers it to A1
-    await contract.transferPunk(accounts[1], 2, {from: accounts[2]});
+    var punkIndex = 501;
+    var firstOwner = accounts[4];
+    var bidder = accounts[3];
+    var bidPrice = 10000;    
+    // Check initial ownership
+    var initialOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(firstOwner, currentOwner);    
+    // Bidder bids on punk
+    await contract.enterBidForPunk(punkIndex, {from: bidder, value: bidPrice});
+    // Owner transfers it to Bidder
+    await contract.transferPunk(bidder, punkIndex, {from: firstOwner});
     // Check ownership
-    var currentOwner = await contract.punkIndexToAddress.call(2);
-    assert.equal(accounts[1], currentOwner);
+    var currentOwner = await contract.punkIndexToAddress.call(punkIndex);
+    assert.equal(bidder, currentOwner);
     // Check the balances
-    var balance0 = await contract.balanceOf.call(accounts[0]);
-    var balance1 = await contract.balanceOf.call(accounts[1]);
-    var balance2 = await contract.balanceOf.call(accounts[2]);
+    var balance0 = await contract.balanceOf.call(bidder);
+    var balance1 = await contract.balanceOf.call(firstOwner);
     assert.equal(balance0, 1);
-    assert.equal(balance1, 2);
-    assert.equal(balance2, 0);
+    assert.equal(balance1, 1);
     // Make sure the bid is now gone
-    var bid = await contract.punkBids.call(1);
+    var bid = await contract.punkBids.call(punkIndex);
     assert.equal(false, bid[1]);
-    // Make sure A1 was refunded for bid
-    var amount = await contract.pendingWithdrawals.call(accounts[1]);
-    assert.equal(10000, amount);
-    await contract.withdraw({from: accounts[1]});
-    var newAmount = await contract.pendingWithdrawals.call(accounts[1]);
+    // Make sure bidder was refunded for bid
+    var amount = await contract.pendingWithdrawals.call(bidder);
+    assert.equal(bidPrice, amount);
+    await contract.withdraw({from: bidder});
+    var newAmount = await contract.pendingWithdrawals.call(bidder);
     assert.equal(0, newAmount);
   })
 });
