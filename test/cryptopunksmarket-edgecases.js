@@ -110,7 +110,7 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     var salePrice = 9000;
     // Check initial ownership
     var initialOwner = await contract.punkIndexToAddress.call(punkIndex);
-    assert.equal(firstOwner, currentOwner);
+    assert.equal(firstOwner, initialOwner);
     // Bidder bids on punk
     await contract.enterBidForPunk(punkIndex, {from: bidder, value: bidPrice});
     // Owner offers it for sale
@@ -140,7 +140,7 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     // Make sure the bid is still in place
     var bid = await contract.punkBids.call(punkIndex);
     assert.equal(true, bid[0]);
-    assert.equal(0, bid[1]);
+    assert.equal(punkIndex, bid[1]);
     assert.equal(bidPrice, bid[3]);
   }),
   it("place a bid, then owner offers for sale, then bidder accepts that offer", async function () {
@@ -152,7 +152,7 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     var salePrice = 15000;
     // Check initial ownership
     var initialOwner = await contract.punkIndexToAddress.call(punkIndex);
-    assert.equal(firstOwner, currentOwner);
+    assert.equal(firstOwner, initialOwner);
     // Bidder bids on punk
     console.log("About to enter bid");
     var accountBalancePrev = await web3.eth.getBalance(bidder);
@@ -184,7 +184,7 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     assert.equal(balance1, 0);
     // Make sure the bid is now gone
     var bid = await contract.punkBids.call(punkIndex);
-    assert.equal(false, bid[1]);
+    assert.equal(false, bid[0]);
     // Make sure bidder was refunded for bid
     var amount1 = await contract.pendingWithdrawals.call(bidder);
     console.log("Amount1: " + amount1);
@@ -201,7 +201,7 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     var bidPrice = 10000;    
     // Check initial ownership
     var initialOwner = await contract.punkIndexToAddress.call(punkIndex);
-    assert.equal(firstOwner, currentOwner);    
+    assert.equal(firstOwner, initialOwner);
     // Bidder bids on punk
     await contract.enterBidForPunk(punkIndex, {from: bidder, value: bidPrice});
     // Owner transfers it to Bidder
@@ -216,7 +216,7 @@ contract('CryptoPunksMarket-edgecases', function (accounts) {
     assert.equal(balance1, 1);
     // Make sure the bid is now gone
     var bid = await contract.punkBids.call(punkIndex);
-    assert.equal(false, bid[1]);
+    assert.equal(false, bid[0]);
     // Make sure bidder was refunded for bid
     var amount = await contract.pendingWithdrawals.call(bidder);
     assert.equal(bidPrice, amount);
