@@ -25,16 +25,17 @@ contract('CryptoPunksMarket-setInitial', function (accounts) {
     assert.equal(assignCoins, balanceAfter);
 
   }),
-    it("Can not claim punk after set initial owners assigned", async function () {
+    it("bulk assign", async function () {
       var contract = await CryptoPunksMarket.deployed();
-      await contract.allInitialOwnersAssigned();
-      try {
-        await contract.setInitialOwner(accounts[0], 0);
-        assert(false, "Should have thrown exception.");
-      } catch (err) {
-        // Should catch an exception
+      var owners = [address[0], address[1], address[2], address[3], address[4], address[5], address[6], address[7], address[8], address[9]];
+      var punks = [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009];
+      await contract.setInitialOwners(owners, punks);
+      for (var i = 0; i < 10; i++) {
+        var currentOwner = await contract.punkIndexToAddress.call(punks[i]);
+        assert.equal(currentOwner, owners[i]);
       }
-
+      var remainingAfter = await contract.punksRemainingToAssign.call();
+      assert.equal(10000-110, remainingAfter);
     }),
     it("can not pass an invalid index to assign initial", async function () {
       var contract = await CryptoPunksMarket.deployed();
@@ -50,6 +51,17 @@ contract('CryptoPunksMarket-setInitial', function (accounts) {
       var contract = await CryptoPunksMarket.deployed();
       try {
         await contract.setInitialOwner(accounts[1], 1);
+        assert(false, "Should have thrown exception.");
+      } catch (err) {
+        // Should catch an exception
+      }
+
+    }),
+    it("Can not claim punk after set initial owners assigned", async function () {
+      var contract = await CryptoPunksMarket.deployed();
+      await contract.allInitialOwnersAssigned();
+      try {
+        await contract.setInitialOwner(accounts[0], 0);
         assert(false, "Should have thrown exception.");
       } catch (err) {
         // Should catch an exception
