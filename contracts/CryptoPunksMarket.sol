@@ -70,9 +70,14 @@ contract CryptoPunksMarket {
         if (msg.sender != owner) throw;
         if (allPunksAssigned) throw;
         if (punkIndex >= 10000) throw;
+
+        if (punkIndexToAddress[punkIndex] != 0x0) {
+            balanceOf[punkIndexToAddress[punkIndex]]--;
+        } else {
+            punksRemainingToAssign--;
+        }
         punkIndexToAddress[punkIndex] = to;
         balanceOf[to]++;
-        punksRemainingToAssign--;
         Assign(to, punkIndex);
     }
 
@@ -105,6 +110,14 @@ contract CryptoPunksMarket {
         balanceOf[to]++;
         Transfer(msg.sender, to, 1);
         PunkTransfer(msg.sender, to, punkIndex);
+        // Check for the case where there is a bid from the new owner and refund it.
+        // Any other bid can stay in place.
+        Bid bid = punkBids[punkIndex];
+        if (bid.bidder == to) {
+            // Kill bid and refund value
+            pendingWithdrawals[to] += bid.value;
+            punkBids[punkIndex] = Bid(false, punkIndex, 0x0, 0);
+        }
     }
 
     function punkNoLongerForSale(uint punkIndex) {
@@ -150,6 +163,15 @@ contract CryptoPunksMarket {
         punkNoLongerForSale(punkIndex);
         pendingWithdrawals[seller] += msg.value;
         PunkBought(punkIndex, msg.value, seller, msg.sender);
+
+        // Check for the case where there is a bid from the new owner and refund it.
+        // Any other bid can stay in place.
+        Bid bid = punkBids[punkIndex];
+        if (bid.bidder == msg.sender) {
+            // Kill bid and refund value
+            pendingWithdrawals[msg.sender] += bid.value;
+            punkBids[punkIndex] = Bid(false, punkIndex, 0x0, 0);
+        }
     }
 
     function withdraw() {
