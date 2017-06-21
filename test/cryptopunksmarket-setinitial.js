@@ -27,7 +27,7 @@ contract('CryptoPunksMarket-setInitial', function (accounts) {
   }),
     it("bulk assign", async function () {
       var contract = await CryptoPunksMarket.deployed();
-      var owners = [address[0], address[1], address[2], address[3], address[4], address[5], address[6], address[7], address[8], address[9]];
+      var owners = [accounts[0], accounts[1], accounts[2], accounts[3], accounts[4], accounts[5], accounts[6], accounts[7], accounts[8], accounts[9]];
       var punks = [1000, 1001, 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009];
       await contract.setInitialOwners(owners, punks);
       for (var i = 0; i < 10; i++) {

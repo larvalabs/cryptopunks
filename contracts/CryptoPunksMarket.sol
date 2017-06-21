@@ -83,6 +83,7 @@ contract CryptoPunksMarket {
     }
 
     function setInitialOwners(address[] addresses, uint[] indices) {
+        if (msg.sender != owner) throw;
         uint n = addresses.length;
         for (uint i = 0; i < n; i++) {
             setInitialOwner(addresses[i], indices[i]);
