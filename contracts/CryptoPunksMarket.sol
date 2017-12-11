@@ -111,6 +111,7 @@ contract CryptoPunksMarket {
         if (!allPunksAssigned) throw;
         if (punkIndexToAddress[punkIndex] != msg.sender) throw;
         if (punkIndex >= 10000) throw;
+        if (to == 0x0) throw;
         if (punksOfferedForSale[punkIndex].isForSale) {
             punkNoLongerForSale(punkIndex);
         }
