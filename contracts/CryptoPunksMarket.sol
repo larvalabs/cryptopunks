@@ -12,8 +12,6 @@ contract CryptoPunksMarket {
     uint8 public decimals;
     uint256 public totalSupply;
 
-    uint public nextPunkIndexToAssign = 0;
-
     bool public allPunksAssigned = false;
     uint public punksRemainingToAssign = 0;
 
