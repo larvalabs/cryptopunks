@@ -18,7 +18,7 @@ The easiest way is to use [MyEtherWallet](https://www.myetherwallet.com/#contrac
 
 Once you are watching the contract you can execute the following functions to transact punks:
 
-* ```getPunk(uint index)``` to claim ownership of a punk (this is no longer useful as all 10,00 punks have been claimed).
+* ```getPunk(uint index)``` to claim ownership of a punk (this is no longer useful as all 10,000 punks have been claimed).
 * ```transferPunk(address to, uint index)``` transfer ownership of a punk to someone without requiring any payment.
 * ```offerPunkForSale(uint punkIndex, uint minSalePriceInWei)``` offer one of your punks for sale to anyone willing to pay the minimum price specified (in Wei).
 * ```offerPunkForSaleToAddress(uint punkIndex, uint minSalePriceInWei, address toAddress)``` offer one of your punks for some minumum price, but only to the address specified. Use this to sell a punk to a specific person.
