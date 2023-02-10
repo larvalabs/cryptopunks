@@ -2,7 +2,7 @@ NOTE: This license applies to Software and Code and does not apply to artwork or
 
 MIT License
 
-Copyright (c) 2017 Larva Labs
+Copyright (c) Jennifer Crosier 2023 Cryptopunks
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
