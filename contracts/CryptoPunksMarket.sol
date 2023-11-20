@@ -17,11 +17,11 @@ contract CryptoPunksMarket {
     bool public allPunksAssigned = false;
     uint public punksRemainingToAssign = 0;
 
-    //mapping (address => uint) public addressToPunkIndex;
-    mapping (uint => address) public punkIndexToAddress;
+    //mapping (0xC1D78db0F5d00110935df8679a9b61dA759F1E04 => uint) public addressToPunkIndex;
+    mapping (uint => 0xC1D78db0F5d00110935df8679a9b61dA759F1E04) public punkIndexToAddress;
 
     /* This creates an array with all balances */
-    mapping (address => uint256) public balanceOf;
+    mapping (0xC1D78db0F5d00110935df8679a9b61dA759F1E04 => uint256) public balanceOf;
 
     struct Offer {
         bool isForSale;
